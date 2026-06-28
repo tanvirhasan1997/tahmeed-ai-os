@@ -143,13 +143,17 @@ async function loadDashboard() {
         const response = await fetch(`${API_BASE}/dashboard`);
         const data = await response.json();
 
-        document.getElementById('stat-agents').textContent = data.agents || 0;
-        document.getElementById('stat-completed').textContent = data.completedTasks || 0;
-        document.getElementById('stat-pending').textContent = data.pendingTasks || 0;
-        document.getElementById('stat-memory').textContent = data.memoryItems || 0;
+        // Agents is an array from API
+        const agentCount = Array.isArray(data.agents) ? data.agents.length : (data.agents || 0);
+        document.getElementById('stat-agents').textContent = agentCount;
+        document.getElementById('stat-completed').textContent = data.tasks?.completed || data.completedTasks || 0;
+        document.getElementById('stat-pending').textContent = data.tasks?.pending || data.pendingTasks || 0;
+        document.getElementById('stat-memory').textContent = data.memory?.total || data.memoryItems || 0;
 
-        if (data.agents_list) {
-            renderAgentCards(data.agents_list, 'agents-grid');
+        // Render agent cards
+        const agents = Array.isArray(data.agents) ? data.agents : [];
+        if (agents.length > 0) {
+            renderAgentCards(agents, 'agents-grid');
         }
     } catch (error) {
         console.error('Dashboard load error:', error);
