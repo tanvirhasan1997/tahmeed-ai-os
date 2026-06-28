@@ -106,12 +106,12 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);mi
     </div>
 
     <div class="nav">
-        <button class="active" onclick="show('dashboard')">📊 ড্যাশবোর্ড</button>
-        <button onclick="show('command')">⚡ কমান্ড</button>
-        <button onclick="show('agents')">🤖 এজেন্ট</button>
-        <button onclick="show('tasks')">📋 টাস্ক</button>
-        <button onclick="show('memory')">💾 মেমরি</button>
-        <button onclick="show('tools')">🔧 টুলস</button>
+        <button class="active" onclick="show('dashboard',this)">📊 ড্যাশবোর্ড</button>
+        <button onclick="show('command',this)">⚡ কমান্ড</button>
+        <button onclick="show('agents',this)">🤖 এজেন্ট</button>
+        <button onclick="show('tasks',this)">📋 টাস্ক</button>
+        <button onclick="show('memory',this)">💾 মেমরি</button>
+        <button onclick="show('tools',this)">🔧 টুলস</button>
     </div>
 
     <div class="section active" id="s-dashboard">
@@ -147,13 +147,13 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);mi
 </div>
 
 <script>
-const API = '?api=';
+const API = 'index.php?api=';
 
-function show(id) {
+function show(id, btn) {
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
     document.getElementById('s-'+id).classList.add('active');
     document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
-    event.target.classList.add('active');
+    if(btn) btn.classList.add('active');
     if(id=='dashboard') loadDash();
     if(id=='agents') loadAgents();
     if(id=='tasks') loadTasks();
@@ -210,7 +210,7 @@ async function run() {
     loadDash();
 }
 
-function fill(t){document.getElementById('cmd').value=t;show('command');}
+function fill(t){document.getElementById('cmd').value=t;show('command',document.querySelectorAll('.nav button')[1]);}
 
 loadDash();
 </script>
