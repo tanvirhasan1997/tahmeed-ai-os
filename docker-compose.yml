@@ -1,0 +1,88 @@
+version: "3.9"
+
+services:
+  backend:
+    build: ./backend
+    container_name: tahmeed-backend
+    ports:
+      - "8000:8000"
+    env_file: .env
+    volumes:
+      - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - tahmeed-network
+
+  celery-worker:
+    build: ./backend
+    container_name: tahmeed-celery-worker
+    env_file: .env
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - backend
+      - redis
+    command: celery -A workers.celery_app worker --loglevel=info --concurrency=4
+    networks:
+      - tahmeed-network
+
+  frontend:
+    build: ./frontend
+    container_name: tahmeed-frontend
+    ports:
+      - "3000:3000"
+    env_file: .env
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
+    networks:
+      - tahmeed-network
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: tahmeed-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: tahmeed
+      POSTGRES_PASSWORD: tahmeed_secret
+      POSTGRES_DB: tahmeed_ai_os
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tahmeed"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tahmeed-network
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: tahmeed-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tahmeed-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  tahmeed-network:
+    driver: bridge
